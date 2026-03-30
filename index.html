@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpenClaw Mastery Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #181c22;
+    --border: #1e242d;
+    --accent: #ff4d1a;
+    --accent2: #ff8c5a;
+    --text: #e8ecf0;
+    --muted: #5a6472;
+    --green: #2ecc71;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .logo-text span { color: var(--accent); }
+
+  .progress-wrap { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+  .progress-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .nav { padding: 12px 0; flex: 1; }
+  .section-group { margin-bottom: 4px; }
+  .section-header {
+    padding: 8px 24px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--surface2); }
+  .nav-item.active {
+    background: rgba(255,77,26,0.08);
+    border-left-color: var(--accent);
+  }
+  .nav-item.completed .nav-dot { background: var(--green); }
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .nav-item.active .nav-dot { background: var(--accent); }
+  .nav-title {
+    font-size: 13px;
+    color: var(--muted);
+    transition: color 0.15s;
+    line-height: 1.3;
+  }
+  .nav-item:hover .nav-title,
+  .nav-item.active .nav-title { color: var(--text); }
+  .nav-item.completed .nav-title { color: var(--text); }
+  .nav-check {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--green);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .nav-item.completed .nav-check { opacity: 1; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* HERO */
+  .hero {
+    padding: 60px 64px 48px;
+    background: linear-gradient(135deg, var(--bg) 0%, #0e1219 100%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '🦞';
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 120px;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    max-width: 600px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 28px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* CONTENT AREA */
+  .content-area { padding: 48px 64px; flex: 1; }
+
+  /* MODULE CARD */
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .module-card:hover { border-color: #2a3040; }
+  .module-card.active-card { border-color: rgba(255,77,26,0.3); }
+
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .module-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    width: 28px;
+    flex-shrink: 0;
+  }
+  .module-icon {
+    font-size: 22px;
+    width: 40px;
+    height: 40px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .module-meta { flex: 1; }
+  .module-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .module-subtitle { font-size: 12px; color: var(--muted); }
+  .module-toggle {
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform 0.3s;
+    font-family: var(--mono);
+  }
+  .module-card.open .module-toggle { transform: rotate(180deg); }
+
+  .module-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+  .module-card.open .module-body { display: block; }
+
+  /* LESSON ITEM */
+  .lesson-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .lesson-item:last-child { border-bottom: none; }
+  .lesson-item:hover { background: var(--surface2); }
+  .lesson-item.active-lesson { background: rgba(255,77,26,0.06); }
+  .lesson-item.done { opacity: 0.7; }
+
+  .lesson-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    padding-top: 3px;
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .lesson-info { flex: 1; }
+  .lesson-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .lesson-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .lesson-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .tag.code { color: #7eb8f7; border-color: rgba(126,184,247,0.2); background: rgba(126,184,247,0.05); }
+  .tag.video { color: #f7c27e; border-color: rgba(247,194,126,0.2); background: rgba(247,194,126,0.05); }
+  .tag.quiz { color: var(--accent2); border-color: rgba(255,140,90,0.2); background: rgba(255,140,90,0.05); }
+
+  .lesson-status {
+    font-size: 14px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* LESSON VIEWER */
+  .lesson-viewer {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 24px;
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .lesson-viewer.visible { display: block; }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .viewer-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .viewer-header-left { flex: 1; }
+  .viewer-breadcrumb {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .viewer-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .viewer-close {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .viewer-close:hover { color: var(--text); border-color: var(--muted); }
+
+  .viewer-body { padding: 28px; }
+  .viewer-body h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 24px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .viewer-body h3:first-child { margin-top: 0; }
+  .viewer-body p {
+    font-size: 14px;
+    color: #b0bac8;
+    line-height: 1.8;
+    margin-bottom: 14px;
+  }
+  .viewer-body ul {
+    list-style: none;
+    margin-bottom: 16px;
+  }
+  .viewer-body ul li {
+    font-size: 14px;
+    color: #b0bac8;
+    line-height: 1.7;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .viewer-body ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #a8c0d6;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd { color: var(--accent2); }
+  .code-block .kw { color: #79b8ff; }
+  .code-block .str { color: #9ecbff; }
+  .code-block .val { color: #f69d50; }
+
+  .callout {
+    background: rgba(255,77,26,0.07);
+    border: 1px solid rgba(255,77,26,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: #c8d0da;
+    line-height: 1.7;
+    display: flex;
+    gap: 12px;
+  }
+  .callout-icon { font-size: 16px; flex-shrink: 0; padding-top: 1px; }
+  .callout.info {
+    background: rgba(126,184,247,0.05);
+    border-color: rgba(126,184,247,0.2);
+  }
+  .callout.success {
+    background: rgba(46,204,113,0.06);
+    border-color: rgba(46,204,113,0.2);
+  }
+
+  /* QUIZ */
+  .quiz-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .quiz-q {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--surface2);
+    transition: all 0.15s;
+    font-family: var(--sans);
+    text-align: left;
+  }
+  .quiz-opt:hover { border-color: var(--accent); color: var(--text); }
+  .quiz-opt.correct { background: rgba(46,204,113,0.1); border-color: var(--green); color: var(--green); }
+  .quiz-opt.wrong { background: rgba(255,77,26,0.08); border-color: var(--accent); color: var(--accent); }
+  .quiz-feedback {
+    font-size: 12px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(46,204,113,0.1); color: var(--green); }
+  .quiz-feedback.bad { background: rgba(255,77,26,0.08); color: var(--accent2); }
+
+  .viewer-footer {
+    padding: 16px 28px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .btn-complete {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 700;
+  }
+  .btn-complete:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-complete.done-btn {
+    background: var(--green);
+    cursor: default;
+    transform: none;
+  }
+  .btn-next {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 10px 22px;
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-next:hover { color: var(--text); border-color: var(--muted); }
+
+  /* COMPLETION */
+  .congrats-banner {
+    display: none;
+    background: linear-gradient(135deg, rgba(46,204,113,0.1), rgba(46,204,113,0.05));
+    border: 1px solid rgba(46,204,113,0.3);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    text-align: center;
+    animation: slideUp 0.5s ease;
+  }
+  .congrats-banner.show { display: block; }
+  .congrats-banner h2 { font-size: 22px; color: var(--green); margin-bottom: 8px; }
+  .congrats-banner p { color: var(--muted); font-size: 14px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; min-width: unset; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+    .hero { padding: 36px 24px 28px; }
+    .hero::after { display: none; }
+    .content-area { padding: 28px 20px; }
+  }
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 26px; }
+    .hero-stats { gap: 18px; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ===================== PAGE VISIBILITY ===================== */
+  #landingPage { display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); }
+  #landingPage.hidden { display: none !important; }
+  #coursePage { display: none; }
+  #coursePage.visible { display: flex; }
+
+  /* NAV BAR */
+  .land-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: rgba(10,12,15,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 50;
+  }
+  .land-nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .land-nav-logo span { color: var(--accent); }
+  .land-nav-logo .nav-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .land-nav-cta { background: var(--accent); color: white; border: none; padding: 9px 20px; border-radius: 7px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .land-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* HERO */
+  .land-hero { flex: 1; display: grid; grid-template-columns: 1fr 420px; gap: 60px; align-items: start; padding: 80px 60px 60px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .land-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(255,77,26,0.3); background: rgba(255,77,26,0.06); padding: 5px 12px; border-radius: 20px; margin-bottom: 28px; }
+  .land-eyebrow::before { content: '●'; font-size: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .land-h1 { font-size: clamp(36px, 5vw, 62px); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 24px; }
+  .land-h1 .line2 { display: block; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .land-desc { font-size: 17px; color: #8a95a3; line-height: 1.75; max-width: 500px; margin-bottom: 36px; }
+  .land-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+  .land-feat { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #8a95a3; }
+  .land-feat-check { width: 22px; height: 22px; background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--green); flex-shrink: 0; }
+  .land-social { display: flex; align-items: center; gap: 14px; }
+  .land-avatars { display: flex; }
+  .land-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg); background: linear-gradient(135deg, #2a3040, #1e2530); display: flex; align-items: center; justify-content: center; font-size: 14px; margin-left: -8px; }
+  .land-avatar:first-child { margin-left: 0; }
+  .land-social-text { font-size: 12px; color: var(--muted); }
+  .land-social-text strong { color: var(--text); }
+
+  /* ENROLLMENT CARD */
+  .enroll-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; position: relative; overflow: hidden; }
+  .enroll-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2), transparent); }
+  .enroll-card-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .enroll-card-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .enroll-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 24px; }
+  .price-val { font-family: var(--mono); font-size: 40px; font-weight: 700; color: var(--green); }
+  .price-label { font-size: 13px; color: var(--muted); }
+  .price-orig { font-family: var(--mono); font-size: 16px; color: var(--muted); text-decoration: line-through; margin-left: 4px; }
+
+  /* FORM */
+  .enroll-form { display: flex; flex-direction: column; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .form-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.15s; width: 100%; }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--muted); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.15s; width: 100%; appearance: none; cursor: pointer; }
+  .form-select:focus { border-color: var(--accent); }
+  .form-error { font-size: 11px; color: var(--accent); display: none; margin-top: 2px; }
+  .form-error.show { display: block; }
+  .enroll-btn { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 9px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 4px; width: 100%; }
+  .enroll-btn:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,77,26,0.3); }
+  .enroll-btn.loading { pointer-events: none; opacity: 0.7; }
+  .enroll-fine { font-size: 11px; color: var(--muted); text-align: center; margin-top: 10px; line-height: 1.6; }
+  .includes { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .include-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+  .include-icon { font-size: 14px; width: 20px; text-align: center; }
+
+  /* MODULES PREVIEW */
+  .land-modules { padding: 0 60px 60px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .land-section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  .land-section-title { font-size: clamp(24px, 3vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .land-section-sub { font-size: 15px; color: var(--muted); margin-bottom: 40px; }
+  .preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .preview-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; gap: 16px; transition: border-color 0.2s, transform 0.2s; cursor: pointer; }
+  .preview-card:hover { border-color: rgba(255,77,26,0.3); transform: translateY(-2px); }
+  .preview-icon { font-size: 28px; width: 48px; height: 48px; background: var(--surface2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .preview-num { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 4px; }
+  .preview-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .preview-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .preview-count { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 8px; }
+
+  /* FOOTER */
+  .land-footer { border-top: 1px solid var(--border); padding: 24px 60px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); }
+
+  /* SUCCESS */
+  .enroll-success { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px 0; gap: 14px; animation: slideUp 0.4s ease; }
+  .enroll-success.show { display: flex; }
+  .success-ring { width: 64px; height: 64px; background: rgba(46,204,113,0.12); border: 2px solid var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .success-title { font-size: 20px; font-weight: 700; }
+  .success-sub { font-size: 13px; color: var(--muted); }
+  .success-name { color: var(--accent); }
+  .btn-enter-course { background: var(--accent); color: white; border: none; padding: 13px 28px; border-radius: 9px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+  .btn-enter-course:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,77,26,0.3); }
+
+  @media (max-width: 960px) {
+    .land-hero { grid-template-columns: 1fr; padding: 40px 24px; gap: 40px; }
+    .land-modules { padding: 0 24px 40px; }
+    .land-nav { padding: 16px 24px; }
+    .preview-grid { grid-template-columns: 1fr; }
+    .land-footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== LANDING PAGE ==================== -->
+<div id="landingPage">
+  <nav class="land-nav">
+    <div class="land-nav-logo">
+      <div class="nav-icon">🦞</div>
+      Open<span>Claw</span>&nbsp;Academy
+    </div>
+    <button class="land-nav-cta" onclick="scrollToEnroll()">Enroll Free →</button>
+  </nav>
+
+  <div class="land-hero">
+    <!-- LEFT -->
+    <div class="land-hero-left">
+      <div class="land-eyebrow">Free Course · All Levels · Self-Paced</div>
+      <h1 class="land-h1">
+        Build Your Own<br>
+        <span class="line2">AI Agent</span>
+        from Scratch
+      </h1>
+      <p class="land-desc">
+        Master OpenClaw — the open-source autonomous AI framework with 247k+ GitHub stars. Deploy a personal AI that works 24/7, remembers everything, and automates your digital life.
+      </p>
+      <div class="land-features">
+        <div class="land-feat"><div class="land-feat-check">✓</div>Install OpenClaw on any OS in under 10 minutes</div>
+        <div class="land-feat"><div class="land-feat-check">✓</div>Connect Telegram, WhatsApp, iMessage, Discord & more</div>
+        <div class="land-feat"><div class="land-feat-check">✓</div>Build custom skills and automate daily workflows</div>
+        <div class="land-feat"><div class="land-feat-check">✓</div>Deploy to a VPS for always-on 24/7 operation</div>
+        <div class="land-feat"><div class="land-feat-check">✓</div>5 knowledge quizzes with instant feedback</div>
+      </div>
+      <div class="land-social">
+        <div class="land-avatars">
+          <div class="land-avatar">👩‍💻</div>
+          <div class="land-avatar">🧑‍🔬</div>
+          <div class="land-avatar">👨‍💼</div>
+          <div class="land-avatar">👩‍🎨</div>
+        </div>
+        <div class="land-social-text"><strong>2,400+ students</strong> already enrolled</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: ENROLLMENT CARD -->
+    <div class="enroll-card" id="enrollCard">
+      <!-- FORM STATE -->
+      <div id="enrollFormWrap">
+        <div class="enroll-card-title">Enroll for Free</div>
+        <div class="enroll-card-sub">Get instant access to all 4 modules and 16 lessons.</div>
+        <div class="enroll-price">
+          <span class="price-val">FREE</span>
+          <span class="price-orig">$49</span>
+          <span class="price-label">· Limited time</span>
+        </div>
+        <div class="enroll-form" id="enrollForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input class="form-input" id="firstName" type="text" placeholder="Alex" />
+              <div class="form-error" id="firstNameErr">Required</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input class="form-input" id="lastName" type="text" placeholder="Chen" />
+              <div class="form-error" id="lastNameErr">Required</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input class="form-input" id="emailInput" type="email" placeholder="you@example.com" />
+            <div class="form-error" id="emailErr">Enter a valid email</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Experience Level</label>
+            <select class="form-select" id="levelSelect">
+              <option value="">Select your level...</option>
+              <option value="beginner">Beginner — new to AI agents</option>
+              <option value="intermediate">Intermediate — some automation experience</option>
+              <option value="advanced">Advanced — developer / sysadmin</option>
+            </select>
+            <div class="form-error" id="levelErr">Please select a level</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Primary Goal</label>
+            <select class="form-select" id="goalSelect">
+              <option value="">What do you want to build?</option>
+              <option value="personal">Personal AI assistant</option>
+              <option value="automation">Task & workflow automation</option>
+              <option value="learning">Just exploring / learning</option>
+              <option value="business">Business / team use case</option>
+            </select>
+          </div>
+          <button class="enroll-btn" id="enrollBtn" onclick="handleEnroll()">
+            Start Learning Now →
+          </button>
+          <div class="enroll-fine">🔒 No credit card · No spam · Cancel anytime</div>
+        </div>
+        <div class="includes">
+          <div class="include-item"><span class="include-icon">📚</span>4 modules · 16 lessons</div>
+          <div class="include-item"><span class="include-icon">🧩</span>5 interactive quizzes</div>
+          <div class="include-item"><span class="include-icon">⏱️</span>Self-paced, no deadlines</div>
+          <div class="include-item"><span class="include-icon">🏆</span>Progress tracking</div>
+          <div class="include-item"><span class="include-icon">♾️</span>Lifetime access</div>
+        </div>
+      </div>
+
+      <!-- SUCCESS STATE -->
+      <div class="enroll-success" id="enrollSuccess">
+        <div class="success-ring">🎉</div>
+        <div class="success-title">You're enrolled!</div>
+        <div class="success-sub">Welcome, <span class="success-name" id="successName"></span>.<br>Your OpenClaw journey starts now.</div>
+        <button class="btn-enter-course" onclick="enterCourse()">Enter Course →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE PREVIEW -->
+  <div class="land-modules">
+    <div class="land-section-label">Course Curriculum</div>
+    <div class="land-section-title">What you'll learn</div>
+    <div class="land-section-sub">Four focused modules covering everything from first install to advanced automation.</div>
+    <div class="preview-grid">
+      <div class="preview-card" onclick="scrollToEnroll()">
+        <div class="preview-icon">⚙️</div>
+        <div class="preview-info">
+          <div class="preview-num">MODULE 01</div>
+          <div class="preview-title">Installation & Setup</div>
+          <div class="preview-sub">Get OpenClaw running on macOS, Linux, or Windows. One-line install, onboarding wizard, and first launch.</div>
+          <div class="preview-count">4 lessons</div>
+        </div>
+      </div>
+      <div class="preview-card" onclick="scrollToEnroll()">
+        <div class="preview-icon">🧠</div>
+        <div class="preview-info">
+          <div class="preview-num">MODULE 02</div>
+          <div class="preview-title">Core Concepts</div>
+          <div class="preview-sub">Understand the Gateway architecture, persistent memory, session isolation, and security basics.</div>
+          <div class="preview-count">4 lessons</div>
+        </div>
+      </div>
+      <div class="preview-card" onclick="scrollToEnroll()">
+        <div class="preview-icon">⚡</div>
+        <div class="preview-info">
+          <div class="preview-num">MODULE 03</div>
+          <div class="preview-title">Automating Tasks</div>
+          <div class="preview-sub">Send your first task, set up schedules, use browser automation, and deploy to a VPS for 24/7 uptime.</div>
+          <div class="preview-count">4 lessons</div>
+        </div>
+      </div>
+      <div class="preview-card" onclick="scrollToEnroll()">
+        <div class="preview-icon">🧩</div>
+        <div class="preview-info">
+          <div class="preview-num">MODULE 04</div>
+          <div class="preview-title">Memory & Skills</div>
+          <div class="preview-sub">Explore ClawHub, write custom skills in JavaScript, and discover the growing OpenClaw ecosystem.</div>
+          <div class="preview-count">4 lessons</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="land-footer">
+    <div>🦞 OpenClaw Academy · Free Community Course</div>
+    <div>Built with ❤️ for the OpenClaw community</div>
+  </footer>
+</div>
+
+<!-- ==================== COURSE PAGE ==================== -->
+<div id="coursePage">
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-badge">
+        <div class="logo-icon">🦞</div>
+        <div class="logo-text">Open<span>Claw</span><br>Mastery Course</div>
+      </div>
+      <div id="studentGreet" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px;"></div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Progress</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <nav class="nav" id="navList">
+      <!-- Populated by JS -->
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="hero">
+      <div class="hero-tag">Open Source · Self-Hosted · All Levels</div>
+      <h1>Master <em>OpenClaw</em><br>AI Agents</h1>
+      <p class="hero-desc">Learn to deploy, configure, and automate your own personal AI assistant. From first install to advanced skills — the complete guide.</p>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-val">4</span><span class="stat-label">Modules</span></div>
+        <div class="stat"><span class="stat-val">16</span><span class="stat-label">Lessons</span></div>
+        <div class="stat"><span class="stat-val">All</span><span class="stat-label">Levels</span></div>
+        <div class="stat"><span class="stat-val">Free</span><span class="stat-label">Open Source</span></div>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div class="congrats-banner" id="congratsBanner">
+        <h2>🎉 Course Complete!</h2>
+        <p>You've mastered OpenClaw. Your autonomous AI agent awaits.</p>
+      </div>
+
+      <div id="moduleContainer"></div>
+      <div class="lesson-viewer" id="lessonViewer">
+        <div class="viewer-header">
+          <div class="viewer-header-left">
+            <div class="viewer-breadcrumb" id="viewerBreadcrumb"></div>
+            <div class="viewer-title" id="viewerTitle"></div>
+          </div>
+          <button class="viewer-close" onclick="closeViewer()">✕ Close</button>
+        </div>
+        <div class="viewer-body" id="viewerBody"></div>
+        <div class="viewer-footer">
+          <button class="btn-next" onclick="prevLesson()">← Prev</button>
+          <button class="btn-complete" id="completeBtn" onclick="markComplete()">Mark Complete</button>
+          <button class="btn-next" onclick="nextLesson()">Next →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div><!-- end .app -->
+</div><!-- end #coursePage -->
+
+<script>
+// ===================== ENROLLMENT =====================
+function scrollToEnroll() {
+  document.getElementById('enrollCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('firstName').focus();
+}
+
+function handleEnroll() {
+  let valid = true;
+
+  const fn = document.getElementById('firstName').value.trim();
+  const ln = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('emailInput').value.trim();
+  const level = document.getElementById('levelSelect').value;
+
+  document.getElementById('firstNameErr').classList.toggle('show', !fn);
+  document.getElementById('lastNameErr').classList.toggle('show', !ln);
+  document.getElementById('levelErr').classList.toggle('show', !level);
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById('emailErr').classList.toggle('show', !emailOk);
+
+  if (!fn || !ln || !emailOk || !level) return;
+
+  // Simulate loading
+  const btn = document.getElementById('enrollBtn');
+  btn.textContent = 'Enrolling...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    // Save to sessionStorage so course page knows the student
+    const student = { firstName: fn, lastName: ln, email, level };
+    try { sessionStorage.setItem('ocStudent', JSON.stringify(student)); } catch(e) {}
+
+    // Show success
+    document.getElementById('enrollFormWrap').style.display = 'none';
+    document.getElementById('successName').textContent = fn;
+    document.getElementById('enrollSuccess').classList.add('show');
+  }, 1200);
+}
+
+function enterCourse() {
+  document.getElementById('landingPage').classList.add('hidden');
+  const cp = document.getElementById('coursePage');
+  cp.classList.add('visible');
+  window.scrollTo(0, 0);
+
+  // Greet in sidebar if possible
+  try {
+    const s = JSON.parse(sessionStorage.getItem('ocStudent') || '{}');
+    if (s.firstName) {
+      const greetEl = document.getElementById('studentGreet');
+      if (greetEl) greetEl.textContent = 'Hi, ' + s.firstName + ' 👋';
+    }
+  } catch(e) {}
+
+  // Init course
+  renderModules();
+  renderNav();
+  document.getElementById('module-0').classList.add('open');
+}
+
+// ===================== COURSE DATA =====================
+const MODULES = [
+  {
+    id: 'install',
+    icon: '⚙️',
+    title: 'Installation & Setup',
+    subtitle: 'Get OpenClaw running on any OS',
+    lessons: [
+      {
+        id: 'what-is',
+        title: 'What is OpenClaw?',
+        desc: 'Overview of the self-hosted AI agent framework',
+        tags: ['intro'],
+        content: `
+          <h3>🦞 Meet OpenClaw</h3>
+          <p>OpenClaw is a self-hosted, open-source AI agent that runs on <em>your</em> hardware — not on some company's servers. It acts as a persistent digital assistant that can take real actions: browse the web, manage files, send messages, and automate tasks.</p>
+          <p>Originally launched as <strong>Clawdbot</strong> in late 2025, then briefly called Moltbot, it settled on the OpenClaw name to eliminate licensing conflicts. Since then it has grown to 247,000+ GitHub stars.</p>
+          <div class="callout info"><span class="callout-icon">💡</span><span>Think of OpenClaw not as a chatbot but as a <strong>digital employee</strong>. It has memory, it can take initiative, and it runs 24/7.</span></div>
+          <h3>🏗️ Architecture Overview</h3>
+          <p>OpenClaw is built around three layers:</p>
+          <ul>
+            <li><strong>CLI & Runtime</strong> — Launches and manages the agent process</li>
+            <li><strong>Gateway</strong> — The control plane. Handles messaging platforms, model providers, and your local tools</li>
+            <li><strong>Persistence Layer</strong> — Memory files, config, and state stored at <code>~/.openclaw/</code></li>
+          </ul>
+          <h3>📡 Supported Channels</h3>
+          <p>You can talk to your agent through: Telegram, WhatsApp, iMessage, Discord, Slack, Signal, Microsoft Teams, IRC, Matrix, and more — plus a built-in WebChat UI in your browser.</p>
+          <div class="callout"><span class="callout-icon">⚠️</span><span>OpenClaw can control your files and shell. Treat it like an administrator account — not just a chatbot.</span></div>
+        `
+      },
+      {
+        id: 'prereqs',
+        title: 'Prerequisites',
+        desc: 'Node.js, npm, and what you need before installing',
+        tags: ['setup', 'code'],
+        content: `
+          <h3>📦 System Requirements</h3>
+          <p>OpenClaw requires <strong>Node.js v22 or higher</strong>. Older versions lack native WebSocket support and async features needed by the gateway.</p>
+          <div class="code-block">
+<span class="comment"># Check your current Node version</span>
+<span class="cmd">node --version</span>
+<span class="comment"># Should output: v22.x.x or newer</span>
+
+<span class="comment"># If you need to update, use nvm (recommended):</span>
+<span class="cmd">nvm install 22</span>
+<span class="cmd">nvm use 22</span>
+          </div>
+          <h3>🔑 API Key</h3>
+          <p>You need at least one AI provider API key. OpenClaw supports multiple providers:</p>
+          <ul>
+            <li><strong>Anthropic Claude</strong> — Recommended for best reasoning (get key at console.anthropic.com)</li>
+            <li><strong>OpenAI GPT</strong> — get key at platform.openai.com</li>
+            <li><strong>Google Gemini</strong> — via Google AI Studio</li>
+            <li><strong>Local models</strong> via Ollama or LM Studio — no API key needed</li>
+          </ul>
+          <div class="callout info"><span class="callout-icon">💡</span><span>You can always add or swap model providers after setup. You don't need to commit to one upfront.</span></div>
+          <h3>💻 OS Support</h3>
+          <ul>
+            <li><strong>macOS</strong> — Best experience; dedicated menu bar companion app available</li>
+            <li><strong>Linux</strong> — Fully supported, ideal for VPS/always-on deployment</li>
+            <li><strong>Windows</strong> — Use WSL2 for best results</li>
+          </ul>
+        `
+      },
+      {
+        id: 'install-run',
+        title: 'Installing OpenClaw',
+        desc: 'One-line install and first launch',
+        tags: ['setup', 'code'],
+        content: `
+          <h3>🚀 One-Line Install</h3>
+          <p>The easiest way to get started is the official installer script:</p>
+          <div class="code-block">
+<span class="cmd">curl -fsSL https://openclaw.ai/install.sh | bash</span>
+          </div>
+          <p>This downloads the latest release, installs Node modules, and creates <code>~/.openclaw/openclaw.json</code>.</p>
+          <h3>📦 Via npm (Alternative)</h3>
+          <div class="code-block">
+<span class="cmd">npm install -g @openclaw/openclaw</span>
+
+<span class="comment"># Verify install</span>
+<span class="cmd">openclaw --version</span>
+          </div>
+          <h3>🧑‍💻 From Source (For Developers)</h3>
+          <div class="code-block">
+<span class="cmd">git clone https://github.com/openclaw/openclaw.git</span>
+<span class="cmd">cd openclaw</span>
+<span class="cmd">pnpm install</span>
+<span class="cmd">pnpm ui:build</span>
+<span class="cmd">pnpm build</span>
+          </div>
+          <h3>▶️ Starting the Gateway</h3>
+          <div class="code-block">
+<span class="comment"># Start and run in background</span>
+<span class="cmd">openclaw start --daemon</span>
+
+<span class="comment"># Open browser dashboard</span>
+<span class="comment"># Visit: http://localhost:18789</span>
+          </div>
+          <div class="callout success"><span class="callout-icon">✅</span><span>If you see the dashboard at localhost:18789, your Gateway is running!</span></div>
+        `
+      },
+      {
+        id: 'onboarding',
+        title: 'Running the Onboarding Wizard',
+        desc: 'Select your AI model and messaging channel',
+        tags: ['setup'],
+        content: `
+          <h3>🧙 The Onboarding Wizard</h3>
+          <p>After installing, run the guided setup to configure your agent:</p>
+          <div class="code-block">
+<span class="cmd">openclaw onboard</span>
+          </div>
+          <p>The wizard will walk you through:</p>
+          <ul>
+            <li>Choosing your AI provider and entering your API key</li>
+            <li>Naming your agent</li>
+            <li>Connecting a messaging channel (Telegram is fastest to test)</li>
+            <li>Configuring permissions and sandboxing preferences</li>
+          </ul>
+          <h3>📲 Telegram Setup (Quickstart)</h3>
+          <ul>
+            <li>Open Telegram and search for <strong>@BotFather</strong> (blue checkmark)</li>
+            <li>Send <code>/newbot</code> and follow prompts to name your bot</li>
+            <li>Copy the API token BotFather sends you</li>
+            <li>Paste it in your OpenClaw dashboard under <strong>Channels → Telegram</strong></li>
+          </ul>
+          <div class="callout"><span class="callout-icon">🔒</span><span>Set your bot to <strong>private mode</strong> so it only responds to you. This is the safest starting configuration.</span></div>
+          <h3>📁 Config Location</h3>
+          <p>All configuration lives at <code>~/.openclaw/openclaw.json</code>. You can edit it directly for advanced settings.</p>
+
+          <div id="quiz1" class="quiz-block">
+            <div class="quiz-q">Quick check: Where does OpenClaw store its config file?</div>
+            <div class="quiz-options">
+              <button class="quiz-opt" onclick="checkQ('quiz1', this, false)">~/openclaw.config</button>
+              <button class="quiz-opt" onclick="checkQ('quiz1', this, true)">~/.openclaw/openclaw.json</button>
+              <button class="quiz-opt" onclick="checkQ('quiz1', this, false)">/etc/openclaw/settings.yaml</button>
+            </div>
+            <div class="quiz-feedback" id="quiz1-fb"></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'core',
+    icon: '🧠',
+    title: 'Core Concepts',
+    subtitle: 'Understand the gateway, memory, and sessions',
+    lessons: [
+      {
+        id: 'gateway',
+        title: 'The Gateway Architecture',
+        desc: 'How the control plane connects everything',
+        tags: ['concepts'],
+        content: `
+          <h3>🌐 The Gateway Explained</h3>
+          <p>The <strong>Gateway</strong> is OpenClaw's nerve center. It runs as a WebSocket server at <code>ws://127.0.0.1:18789</code> and manages all communication between:</p>
+          <ul>
+            <li>Your messaging channels (Telegram, WhatsApp, etc.)</li>
+            <li>The AI model (Claude, GPT, Gemini, etc.)</li>
+            <li>Local tools (file system, shell, browser)</li>
+            <li>Companion apps (macOS menu bar, iOS/Android)</li>
+          </ul>
+          <div class="code-block">
+<span class="comment">Gateway Architecture:</span>
+WhatsApp / Telegram / Discord / iMessage
+              ▼
+    ┌─────────────────────────┐
+    │        Gateway          │
+    │   ws://127.0.0.1:18789  │
+    └────────────┬────────────┘
+                 │
+     ┌───────────┼───────────┐
+     ▼           ▼           ▼
+  Pi Agent    WebChat UI   CLI tools
+  (RPC mode)
+          </div>
+          <h3>🤖 The Pi Agent</h3>
+          <p>The <strong>Pi agent</strong> is the reasoning engine that runs in RPC mode. When you send a message, the Gateway routes it to Pi, which decides what tools to use, calls them, and assembles a response.</p>
+          <p>You can run multiple agents with isolated sessions — useful for separating work, personal, and automated workflows.</p>
+        `
+      },
+      {
+        id: 'memory',
+        title: 'Persistent Memory System',
+        desc: 'How OpenClaw remembers you across sessions',
+        tags: ['concepts'],
+        content: `
+          <h3>🧠 How Memory Works</h3>
+          <p>Unlike regular chatbots where context disappears, OpenClaw maintains a <strong>persistent memory system</strong> stored as plain Markdown files in your <code>~/.openclaw/</code> directory.</p>
+          <p>Every day the agent:</p>
+          <ul>
+            <li>Writes a diary of what it did that day</li>
+            <li>Updates its identity file with learned preferences</li>
+            <li>Maintains a to-do list it checks off over time</li>
+          </ul>
+          <div class="callout info"><span class="callout-icon">💡</span><span>"It's not magic. Go to the .openclaw directory on your computer and read how it's structured. It has a memories folder, and every memory has a date." — OpenClaw community</span></div>
+          <h3>📂 Memory File Structure</h3>
+          <div class="code-block">
+~/.openclaw/
+├── openclaw.json        <span class="comment"># Main config</span>
+├── memories/
+│   ├── 2026-03-28.md    <span class="comment"># Daily diary</span>
+│   ├── 2026-03-29.md
+│   └── MEMORY.md        <span class="comment"># Aggregated long-term memory</span>
+├── identity.md          <span class="comment"># Agent preferences & personality</span>
+└── todo.md              <span class="comment"># Persistent to-do list</span>
+          </div>
+          <h3>🔄 Memory vs. Context</h3>
+          <p>Memory works more like <em>preferences and summaries</em> than a full transcript. The agent learns your habits, preferences, and recurring tasks — but doesn't store every message verbatim.</p>
+
+          <div id="quiz2" class="quiz-block">
+            <div class="quiz-q">Where does OpenClaw physically store its memory files?</div>
+            <div class="quiz-options">
+              <button class="quiz-opt" onclick="checkQ('quiz2', this, false)">In the cloud on Anthropic's servers</button>
+              <button class="quiz-opt" onclick="checkQ('quiz2', this, true)">In ~/.openclaw/ on your local machine</button>
+              <button class="quiz-opt" onclick="checkQ('quiz2', this, false)">In a SQLite database at /var/openclaw</button>
+            </div>
+            <div class="quiz-feedback" id="quiz2-fb"></div>
+          </div>
+        `
+      },
+      {
+        id: 'sessions',
+        title: 'Sessions & Multi-Agent Isolation',
+        desc: 'Running separate agents with isolated contexts',
+        tags: ['concepts'],
+        content: `
+          <h3>🗂️ Session Model</h3>
+          <p>OpenClaw uses a session model to isolate different contexts:</p>
+          <ul>
+            <li><strong>main</strong> — Your default direct chat session</li>
+            <li><strong>group isolation</strong> — Each group chat gets its own session</li>
+            <li><strong>per-sender sessions</strong> — Useful for multi-user setups</li>
+          </ul>
+          <h3>👥 Multi-Agent Setup</h3>
+          <p>You can run multiple named agents, each with their own configuration, memory, and channel assignments. This lets you have:</p>
+          <ul>
+            <li>A personal agent for daily life tasks</li>
+            <li>A work agent connected to Slack with restricted file access</li>
+            <li>An automation agent for scheduled/background tasks</li>
+          </ul>
+          <div class="code-block">
+<span class="comment"># Start a named agent instance</span>
+<span class="cmd">openclaw start --agent work-assistant</span>
+
+<span class="comment"># List running agents</span>
+<span class="cmd">openclaw nodes list</span>
+          </div>
+          <h3>🔒 Group Chat Rules</h3>
+          <p>In group chats, you should control when the agent responds. Example config:</p>
+          <div class="code-block">
+{
+  <span class="kw">"channels"</span>: {
+    <span class="kw">"whatsapp"</span>: {
+      <span class="kw">"allowFrom"</span>: [<span class="str">"+15555550123"</span>],
+      <span class="kw">"groups"</span>: {
+        <span class="str">"*"</span>: { <span class="kw">"requireMention"</span>: <span class="val">true</span> }
+      }
+    }
+  }
+}
+          </div>
+        `
+      },
+      {
+        id: 'security',
+        title: 'Security Basics',
+        desc: 'Keeping your agent safe and contained',
+        tags: ['concepts'],
+        content: `
+          <h3>🔐 OpenClaw Security Model</h3>
+          <p>OpenClaw is <strong>not secure by default</strong>. Its safety depends entirely on how you configure, sandbox, and manage it. Since it can execute shell commands and access your file system, a mistake in its reasoning — or manipulated input — could lead to unintended actions.</p>
+          <div class="callout"><span class="callout-icon">⚠️</span><span>Always start with minimal permissions and expand access only as needed. Treat your OpenClaw agent like a new employee: helpful but supervised.</span></div>
+          <h3>✅ Security Best Practices</h3>
+          <ul>
+            <li>Create <strong>separate accounts</strong> for your agent (email, storage, services) — never hand over your own credentials</li>
+            <li>Start with <strong>Telegram private mode</strong> so only you can interact with it</li>
+            <li>Use <strong>allowlists</strong> to restrict which numbers/users can send commands</li>
+            <li>Avoid placing <code>~/.openclaw/</code> in iCloud Drive or other cloud-sync folders (causes high-frequency file conflict issues)</li>
+            <li>For sensitive workflows, run in a <strong>Docker container</strong> for sandbox isolation</li>
+          </ul>
+          <h3>🐳 Docker Sandboxing</h3>
+          <p>OpenClaw's repository includes Docker Compose configs for containerized deployment — useful if you want predictable upgrades or isolation between agents.</p>
+          <div class="code-block">
+<span class="cmd">docker compose up -d</span>
+<span class="comment"># Runs OpenClaw in an isolated container</span>
+          </div>
+
+          <div id="quiz3" class="quiz-block">
+            <div class="quiz-q">What's the safest first messaging config to use with OpenClaw?</div>
+            <div class="quiz-options">
+              <button class="quiz-opt" onclick="checkQ('quiz3', this, false)">Allow all WhatsApp group messages</button>
+              <button class="quiz-opt" onclick="checkQ('quiz3', this, true)">Telegram bot in private mode, owner only</button>
+              <button class="quiz-opt" onclick="checkQ('quiz3', this, false)">Public Discord server with no restrictions</button>
+            </div>
+            <div class="quiz-feedback" id="quiz3-fb"></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'automate',
+    icon: '⚡',
+    title: 'Automating Tasks',
+    subtitle: 'Real workflows you can build with your agent',
+    lessons: [
+      {
+        id: 'first-task',
+        title: 'Your First Automation',
+        desc: 'Send a task via Telegram and watch it execute',
+        tags: ['hands-on', 'code'],
+        content: `
+          <h3>🎯 Sending Your First Task</h3>
+          <p>Once your agent is running and connected to Telegram, open a chat with it and send a natural language command:</p>
+          <div class="code-block">
+<span class="comment"># Example Telegram messages to your agent:</span>
+
+You: <span class="str">"Check my Downloads folder and list all PDF files"</span>
+
+You: <span class="str">"Search the web for the latest OpenClaw release notes"</span>
+
+You: <span class="str">"Remind me tomorrow at 9am to review the project proposal"</span>
+          </div>
+          <p>The agent will interpret the request, plan its approach using available tools, execute the steps, and report back.</p>
+          <h3>📊 Useful Slash Commands</h3>
+          <p>You can also use built-in commands (owner-only in group chats):</p>
+          <div class="code-block">
+<span class="cmd">/status</span>   <span class="comment">— Show session status, model, token usage</span>
+<span class="cmd">/memory</span>   <span class="comment">— Show what the agent remembers about you</span>
+<span class="cmd">/reset</span>    <span class="comment">— Clear the current session context</span>
+          </div>
+          <div class="callout success"><span class="callout-icon">🚀</span><span>Start with simple personal tasks. Brandon Gell (Every's COO) uses his agent to track nanny hours, order groceries, and book date nights — all via iMessage.</span></div>
+        `
+      },
+      {
+        id: 'scheduled',
+        title: 'Scheduled & Proactive Tasks',
+        desc: 'Cron jobs, monitoring, and agent-initiated actions',
+        tags: ['hands-on', 'code'],
+        content: `
+          <h3>⏰ Proactive Agent Behavior</h3>
+          <p>Unlike a chatbot that only responds when you message it, OpenClaw can be configured to take action <em>on its own</em> — monitoring, running schedules, and pinging you with updates.</p>
+          <h3>📅 Cron-Style Scheduling</h3>
+          <div class="code-block">
+<span class="comment"># In openclaw.json, add a schedule block:</span>
+{
+  <span class="kw">"schedules"</span>: [
+    {
+      <span class="kw">"name"</span>: <span class="str">"morning-brief"</span>,
+      <span class="kw">"cron"</span>: <span class="str">"0 8 * * *"</span>,
+      <span class="kw">"task"</span>: <span class="str">"Send me a morning brief with weather, top news, and my calendar"</span>,
+      <span class="kw">"channel"</span>: <span class="str">"telegram"</span>
+    }
+  ]
+}
+          </div>
+          <h3>📁 File Monitoring Example</h3>
+          <div class="code-block">
+<span class="comment"># Agent can watch folders and alert you:</span>
+{
+  <span class="kw">"watchers"</span>: [
+    {
+      <span class="kw">"path"</span>: <span class="str">"~/Downloads"</span>,
+      <span class="kw">"event"</span>: <span class="str">"new_file"</span>,
+      <span class="kw">"action"</span>: <span class="str">"Notify me when a new file appears in Downloads"</span>
+    }
+  ]
+}
+          </div>
+          <h3>💼 Real-World Use Cases</h3>
+          <ul>
+            <li>Daily digest of emails + calendar sent to Telegram at 8am</li>
+            <li>Auto-organize downloaded files by type</li>
+            <li>Monitor a RSS feed and send summaries of new articles</li>
+            <li>Ping performance metrics every hour to Slack</li>
+          </ul>
+        `
+      },
+      {
+        id: 'clawscripts',
+        title: 'Browser & Web Automation',
+        desc: 'Using the built-in browser control and web tools',
+        tags: ['hands-on', 'code'],
+        content: `
+          <h3>🌐 Built-In Browser Control</h3>
+          <p>OpenClaw includes a <strong>Chromium/Chrome controller</strong> via CDP (Chrome DevTools Protocol). This lets your agent browse the web, fill forms, extract data, and interact with web apps — all programmatically.</p>
+          <div class="code-block">
+<span class="comment"># Tell your agent to do web research:</span>
+You: <span class="str">"Search for the 5 top-rated Node.js frameworks in 2026 and summarize them"</span>
+
+You: <span class="str">"Go to my GitHub notifications and list any PRs that need review"</span>
+
+You: <span class="str">"Check the price of AAPL stock and message me if it drops below $180"</span>
+          </div>
+          <h3>🔧 Web Search Tool</h3>
+          <p>With ClawHub enabled, the agent can search for and auto-install new skills as needed. The built-in web_search skill lets it find information without you writing any code.</p>
+          <div class="callout info"><span class="callout-icon">💡</span><span>OpenClaw's browser automation is managed — it controls Chrome in a sandboxed session so your personal browsing data stays separate.</span></div>
+          <h3>📤 Sending Media</h3>
+          <p>OpenClaw supports sending and receiving images, audio, and documents through its media pipeline. You can ask it to:</p>
+          <ul>
+            <li>Screenshot a webpage and send it to you</li>
+            <li>Transcribe an audio message you send</li>
+            <li>Convert a document and forward it</li>
+          </ul>
+        `
+      },
+      {
+        id: 'deployment',
+        title: 'Always-On Deployment (VPS)',
+        desc: 'Run your agent 24/7 on a cloud server',
+        tags: ['advanced', 'code'],
+        content: `
+          <h3>☁️ Why Deploy to a VPS?</h3>
+          <p>Running OpenClaw on your laptop means it goes offline when you close your lid. Deploying to a <strong>VPS or cloud server</strong> gives you a true 24/7 agent that always responds.</p>
+          <h3>🐳 Docker on a VPS</h3>
+          <div class="code-block">
+<span class="comment"># On your VPS (Ubuntu/Debian):</span>
+<span class="cmd">curl -fsSL https://openclaw.ai/install.sh | bash</span>
+<span class="cmd">openclaw start --daemon</span>
+
+<span class="comment"># Or via Docker:</span>
+<span class="cmd">docker compose up -d</span>
+          </div>
+          <h3>🔗 Remote Access via Tailscale</h3>
+          <p>Use Tailscale to securely expose your Gateway dashboard and WebSocket from anywhere — without opening public ports:</p>
+          <div class="code-block">
+<span class="cmd">tailscale serve http 18789</span>
+<span class="comment"># Exposes Gateway dashboard on your Tailscale network</span>
+          </div>
+          <h3>🏭 Managed Hosting Options</h3>
+          <p>Don't want to deal with server management? Third-party services have appeared:</p>
+          <ul>
+            <li><strong>Clawezy</strong> — Managed OpenClaw hosting, starts ~$49/month</li>
+            <li><strong>Sevalla</strong> — PaaS provider with Docker image support, good for OpenClaw</li>
+          </ul>
+          <div class="callout"><span class="callout-icon">⚠️</span><span>If you connect Telegram/WhatsApp channels, your instance must remain consistently online. A VPS or managed host is the right choice for production use.</span></div>
+
+          <div id="quiz4" class="quiz-block">
+            <div class="quiz-q">What's the main benefit of deploying OpenClaw to a VPS?</div>
+            <div class="quiz-options">
+              <button class="quiz-opt" onclick="checkQ('quiz4', this, false)">It uses less memory than local deployment</button>
+              <button class="quiz-opt" onclick="checkQ('quiz4', this, true)">The agent stays online 24/7 even when your laptop is closed</button>
+              <button class="quiz-opt" onclick="checkQ('quiz4', this, false)">It automatically updates the agent's AI model</button>
+            </div>
+            <div class="quiz-feedback" id="quiz4-fb"></div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'skills',
+    icon: '🧩',
+    title: 'Memory & Skills',
+    subtitle: 'Extend your agent with ClawHub and custom skills',
+    lessons: [
+      {
+        id: 'clawhub',
+        title: 'ClawHub: The Skill Registry',
+        desc: 'Discover and install agent skills automatically',
+        tags: ['advanced'],
+        content: `
+          <h3>🦞 What is ClawHub?</h3>
+          <p><strong>ClawHub</strong> is OpenClaw's built-in skill registry — a minimal package manager for agent capabilities. With it enabled, your agent can discover new skills it needs and pull them in automatically as tasks demand them.</p>
+          <div class="code-block">
+<span class="comment"># Enable ClawHub in openclaw.json:</span>
+{
+  <span class="kw">"clawhub"</span>: {
+    <span class="kw">"enabled"</span>: <span class="val">true</span>,
+    <span class="kw">"autoInstall"</span>: <span class="val">true</span>
+  }
+}
+          </div>
+          <h3>🔍 How Auto-Discovery Works</h3>
+          <p>When you ask the agent to do something it can't do with built-in tools, ClawHub will search its registry for a matching skill, install it, and retry the task — all without you needing to intervene.</p>
+          <h3>📦 Popular Skills</h3>
+          <ul>
+            <li><strong>web_search</strong> — Real-time internet browsing</li>
+            <li><strong>email</strong> — Read, compose, and send email</li>
+            <li><strong>calendar</strong> — View and create calendar events</li>
+            <li><strong>github</strong> — Manage repos, PRs, and issues</li>
+            <li><strong>notion</strong> — Read and write Notion databases</li>
+            <li><strong>spotify</strong> — Control playback and playlists</li>
+          </ul>
+        `
+      },
+      {
+        id: 'custom-skills',
+        title: 'Writing Custom Skills',
+        desc: 'Build your own agent capabilities in JavaScript',
+        tags: ['advanced', 'code'],
+        content: `
+          <h3>🛠️ Anatomy of a Skill</h3>
+          <p>A skill is a JavaScript module that exports a tool definition — a name, description, input schema, and an execute function. The agent calls skills as tools during task planning.</p>
+          <div class="code-block">
+<span class="comment">// skills/my-skill.js</span>
+<span class="kw">export default</span> {
+  <span class="kw">name</span>: <span class="str">'check_weather'</span>,
+  <span class="kw">description</span>: <span class="str">'Get the current weather for a city'</span>,
+  <span class="kw">parameters</span>: {
+    <span class="kw">type</span>: <span class="str">'object'</span>,
+    <span class="kw">properties</span>: {
+      <span class="kw">city</span>: { <span class="kw">type</span>: <span class="str">'string'</span>, <span class="kw">description</span>: <span class="str">'City name'</span> }
+    },
+    <span class="kw">required</span>: [<span class="str">'city'</span>]
+  },
+  <span class="kw">async execute</span>({ city }) {
+    <span class="kw">const</span> res = <span class="kw">await</span> fetch(
+      <span class="str">&#96;https://wttr.in/$&#123;city&#125;?format=3&#96;</span>
+    );
+    <span class="kw">return</span> <span class="kw">await</span> res.text();
+  }
+};
+          </div>
+          <h3>📥 Loading Your Skill</h3>
+          <div class="code-block">
+<span class="comment"># Register in openclaw.json:</span>
+{
+  <span class="kw">"skills"</span>: {
+    <span class="kw">"local"</span>: [<span class="str">"./skills/my-skill.js"</span>]
+  }
+}
+<span class="comment"># Then restart the gateway:</span>
+<span class="cmd">openclaw restart</span>
+          </div>
+          <div class="callout success"><span class="callout-icon">✅</span><span>Your skill is now available! Ask your agent to use it naturally: "What's the weather in Tokyo?"</span></div>
+        `
+      },
+      {
+        id: 'moltbook',
+        title: 'The OpenClaw Ecosystem',
+        desc: 'Companion apps, MoltBook, and GoClaw',
+        tags: ['advanced'],
+        content: `
+          <h3>🌎 The Growing Ecosystem</h3>
+          <p>OpenClaw has spawned a rapid ecosystem of companion tools and services:</p>
+          <ul>
+            <li><strong>GoClaw</strong> — Mobile app for managing and controlling your agent from your phone</li>
+            <li><strong>MoltBook</strong> — A social network for bots where AI agents interact with each other</li>
+            <li><strong>Clawezy</strong> — Managed hosting if you don't want to deal with servers</li>
+            <li><strong>macOS Companion App</strong> — Menu bar control plane with Voice Wake and Push-to-Talk</li>
+            <li><strong>iOS/Android nodes</strong> — Pair mobile devices for camera, voice, and Canvas workflows</li>
+          </ul>
+          <div class="callout info"><span class="callout-icon">💡</span><span>The Gateway alone delivers a great experience. All companion apps are optional — add them when you want extra capabilities.</span></div>
+          <h3>📱 macOS Companion Setup</h3>
+          <p>On macOS, the companion app handles system permissions (Screen Recording, Microphone, Accessibility) and keeps the Gateway daemon running via launchd.</p>
+          <h3>🤝 Community Resources</h3>
+          <ul>
+            <li>GitHub: github.com/openclaw/openclaw</li>
+            <li>Docs: docs.openclaw.ai</li>
+            <li>freeCodeCamp beginner tutorial on YouTube</li>
+            <li>10-day free mastery course on GitHub (20 min/day)</li>
+          </ul>
+        `
+      },
+      {
+        id: 'nextSteps',
+        title: 'Next Steps & Best Practices',
+        desc: 'Where to go from here',
+        tags: ['wrap-up'],
+        content: `
+          <h3>🗺️ Your Learning Path</h3>
+          <p>You've covered all four pillars of OpenClaw. Here's a practical roadmap for what to do next:</p>
+          <ul>
+            <li><strong>Week 1:</strong> Install locally, connect Telegram, complete 3 simple tasks</li>
+            <li><strong>Week 2:</strong> Set up a morning brief schedule, explore memory files</li>
+            <li><strong>Week 3:</strong> Move to a VPS for 24/7 uptime, add iMessage or WhatsApp</li>
+            <li><strong>Month 2:</strong> Write a custom skill for a workflow you use daily</li>
+          </ul>
+          <div class="callout success"><span class="callout-icon">🏆</span><span>The most successful OpenClaw users start with one personal pain point — then expand. Don't try to automate everything at once.</span></div>
+          <h3>🔑 Golden Rules</h3>
+          <ul>
+            <li>Start with minimal permissions — expand access gradually</li>
+            <li>Give your agent its own accounts, not yours</li>
+            <li>Choose a model that matches your risk tolerance — more capable = more powerful + more risky</li>
+            <li>Read your <code>~/.openclaw/memories/</code> folder regularly to understand what your agent is learning</li>
+            <li>Back up your <code>~/.openclaw/</code> directory — it contains your agent's entire brain</li>
+          </ul>
+          <h3>📚 Further Reading</h3>
+          <ul>
+            <li>Official docs: docs.openclaw.ai</li>
+            <li>freeCodeCamp deployment guide</li>
+            <li>Every.to "Setting Up Your First Personal AI Agent" walkthrough</li>
+            <li>HackerNoon complete security hardening guide</li>
+          </ul>
+
+          <div id="quiz5" class="quiz-block">
+            <div class="quiz-q">Final check: What should you do FIRST when setting up OpenClaw?</div>
+            <div class="quiz-options">
+              <button class="quiz-opt" onclick="checkQ('quiz5', this, false)">Connect all 20+ messaging channels at once</button>
+              <button class="quiz-opt" onclick="checkQ('quiz5', this, false)">Deploy immediately to a public VPS with open ports</button>
+              <button class="quiz-opt" onclick="checkQ('quiz5', this, true)">Install locally, connect one channel, complete one simple task</button>
+            </div>
+            <div class="quiz-feedback" id="quiz5-fb"></div>
+          </div>
+        `
+      }
+    ]
+  }
+];
+
+// State
+const completed = new Set();
+let activeLesson = null;
+let flatLessons = [];
+
+// Build flat list
+MODULES.forEach((m, mi) => {
+  m.lessons.forEach((l, li) => {
+    flatLessons.push({ moduleIdx: mi, lessonIdx: li, module: m, lesson: l });
+  });
+});
+const TOTAL = flatLessons.length;
+
+function getLessonKey(mi, li) { return `${mi}-${li}`; }
+
+function getActiveFlatIdx() {
+  if (!activeLesson) return -1;
+  return flatLessons.findIndex(f => f.moduleIdx === activeLesson.mi && f.lessonIdx === activeLesson.li);
+}
+
+function updateProgress() {
+  const pct = Math.round((completed.size / TOTAL) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  if (completed.size === TOTAL) {
+    document.getElementById('congratsBanner').classList.add('show');
+  }
+}
+
+function renderNav() {
+  const nav = document.getElementById('navList');
+  nav.innerHTML = '';
+  MODULES.forEach((m, mi) => {
+    const group = document.createElement('div');
+    group.className = 'section-group';
+    group.innerHTML = `<div class="section-header">${m.icon} ${m.title}</div>`;
+    m.lessons.forEach((l, li) => {
+      const key = getLessonKey(mi, li);
+      const isActive = activeLesson && activeLesson.mi === mi && activeLesson.li === li;
+      const isDone = completed.has(key);
+      const item = document.createElement('div');
+      item.className = `nav-item${isActive ? ' active' : ''}${isDone ? ' completed' : ''}`;
+      item.innerHTML = `<div class="nav-dot"></div><div class="nav-title">${l.title}</div><div class="nav-check">✓</div>`;
+      item.onclick = () => openLesson(mi, li);
+      group.appendChild(item);
+    });
+    nav.appendChild(group);
+  });
+}
+
+function renderModules() {
+  const container = document.getElementById('moduleContainer');
+  container.innerHTML = '';
+  MODULES.forEach((m, mi) => {
+    const card = document.createElement('div');
+    card.className = 'module-card';
+    card.id = `module-${mi}`;
+    const doneCount = m.lessons.filter((_, li) => completed.has(getLessonKey(mi, li))).length;
+    card.innerHTML = `
+      <div class="module-header" onclick="toggleModule(${mi})">
+        <div class="module-num">0${mi + 1}</div>
+        <div class="module-icon">${m.icon}</div>
+        <div class="module-meta">
+          <div class="module-title">${m.title}</div>
+          <div class="module-subtitle">${m.subtitle} · ${doneCount}/${m.lessons.length} complete</div>
+        </div>
+        <div class="module-toggle">▼</div>
+      </div>
+      <div class="module-body">
+        ${m.lessons.map((l, li) => {
+          const key = getLessonKey(mi, li);
+          const isActive = activeLesson && activeLesson.mi === mi && activeLesson.li === li;
+          const isDone = completed.has(key);
+          return `
+            <div class="lesson-item${isActive ? ' active-lesson' : ''}${isDone ? ' done' : ''}" id="lesson-item-${mi}-${li}" onclick="openLesson(${mi}, ${li})">
+              <div class="lesson-num">${li + 1}</div>
+              <div class="lesson-info">
+                <div class="lesson-title">${l.title}</div>
+                <div class="lesson-desc">${l.desc}</div>
+                <div class="lesson-tags">${l.tags.map(t => `<span class="tag ${t}">${t}</span>`).join('')}</div>
+              </div>
+              <div class="lesson-status">${isDone ? '✅' : '○'}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function toggleModule(mi) {
+  const card = document.getElementById(`module-${mi}`);
+  card.classList.toggle('open');
+}
+
+function openLesson(mi, li) {
+  activeLesson = { mi, li };
+  const m = MODULES[mi];
+  const l = m.lessons[li];
+
+  // Open parent module
+  const card = document.getElementById(`module-${mi}`);
+  card.classList.add('open');
+
+  // Update viewer
+  document.getElementById('viewerBreadcrumb').textContent = `Module ${mi + 1} · ${m.title}`;
+  document.getElementById('viewerTitle').textContent = l.title;
+  document.getElementById('viewerBody').innerHTML = l.content;
+
+  const btn = document.getElementById('completeBtn');
+  const key = getLessonKey(mi, li);
+  if (completed.has(key)) {
+    btn.textContent = '✓ Completed';
+    btn.classList.add('done-btn');
+  } else {
+    btn.textContent = 'Mark Complete';
+    btn.classList.remove('done-btn');
+  }
+
+  const viewer = document.getElementById('lessonViewer');
+  viewer.classList.remove('visible');
+  void viewer.offsetWidth;
+  viewer.classList.add('visible');
+
+  // Scroll to viewer
+  setTimeout(() => viewer.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+
+  renderModules();
+  renderNav();
+}
+
+function closeViewer() {
+  document.getElementById('lessonViewer').classList.remove('visible');
+  activeLesson = null;
+  renderModules();
+  renderNav();
+}
+
+function markComplete() {
+  if (!activeLesson) return;
+  const key = getLessonKey(activeLesson.mi, activeLesson.li);
+  completed.add(key);
+  const btn = document.getElementById('completeBtn');
+  btn.textContent = '✓ Completed';
+  btn.classList.add('done-btn');
+  updateProgress();
+  renderModules();
+  renderNav();
+}
+
+function nextLesson() {
+  const idx = getActiveFlatIdx();
+  if (idx < flatLessons.length - 1) {
+    const next = flatLessons[idx + 1];
+    openLesson(next.moduleIdx, next.lessonIdx);
+  }
+}
+
+function prevLesson() {
+  const idx = getActiveFlatIdx();
+  if (idx > 0) {
+    const prev = flatLessons[idx - 1];
+    openLesson(prev.moduleIdx, prev.lessonIdx);
+  }
+}
+
+function checkQ(quizId, btn, isCorrect) {
+  const block = document.getElementById(quizId);
+  const opts = block.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  const fb = document.getElementById(quizId + '-fb');
+  if (isCorrect) {
+    btn.classList.add('correct');
+    fb.textContent = '✓ Correct! Great work.';
+    fb.className = 'quiz-feedback show ok';
+  } else {
+    btn.classList.add('wrong');
+    fb.textContent = '✗ Not quite — review the lesson content above.';
+    fb.className = 'quiz-feedback show bad';
+  }
+}
+
+// Init deferred — called by enterCourse() after enrollment
+</script>
+</body>
+</html>
